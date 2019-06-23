@@ -48,7 +48,7 @@
     ```
     
 - Above data is the real-time data from twitter which related to `bitcoin`.
-- Can you change the topic to get anther data by changing:
+- You can change the topic to get other tweets by changing:
     ```java
     public class TwitterTopic implements Topic {
     
