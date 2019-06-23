@@ -4,7 +4,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 
 public interface Producer<T> {
 
-    KafkaProducer<T, T> producer();
+    KafkaProducer<T, T> produce();
 
     void perform();
 }

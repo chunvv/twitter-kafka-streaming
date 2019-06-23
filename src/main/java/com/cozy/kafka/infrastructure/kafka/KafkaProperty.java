@@ -30,7 +30,7 @@ public class KafkaProperty {
         properties.put(ProducerConfig.RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
         properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
 
-        // High  throughput producer
+        // High  throughput produce
         properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
         properties.put(ProducerConfig.LINGER_MS_CONFIG, "20");
         properties.put(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32 * 1024));

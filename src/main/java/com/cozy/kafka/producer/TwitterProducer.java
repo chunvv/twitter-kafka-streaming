@@ -11,18 +11,18 @@ import org.slf4j.LoggerFactory;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 
-public class TwitterrProducer implements Producer {
+public class TwitterProducer implements Producer, Runnable {
 
-    private Logger logger = LoggerFactory.getLogger(TwitterrProducer.class.getName());
+    private Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
     private final String KAFKA_TOPIC = "twitter_tweets";
 
     private Properties properties;
 
-    public TwitterrProducer(Properties properties) {
+    public TwitterProducer(Properties properties) {
         this.properties = properties;
     }
 
-    public KafkaProducer<String, String> producer() {
+    public KafkaProducer<String, String> produce() {
         return new KafkaProducer<>(properties);
     }
 
@@ -31,7 +31,7 @@ public class TwitterrProducer implements Producer {
         BlockingQueue<String> queue = new TwitterQueue().queue();
 
         Client client = new TwitterClient().client(queue);
-        KafkaProducer<String, String> producer = producer();
+        KafkaProducer<String, String> producer = produce();
 
         logger.info("Starting streaming data");
 
@@ -47,7 +47,6 @@ public class TwitterrProducer implements Producer {
             }
 
             if (message != null) {
-                logger.info(message);
                 producer.send(new ProducerRecord<>(KAFKA_TOPIC, null, message), (metadata, exception) -> {
                     if (exception != null) {
                         logger.error("Something bad happened", exception);
@@ -63,5 +62,10 @@ public class TwitterrProducer implements Producer {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Stopping application...");
         }));
+    }
+
+    @Override
+    public void run() {
+        perform();
     }
 }

@@ -10,6 +10,8 @@ import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
 import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.OAuth1;
 
+import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 
 public class TwitterAuthenticator implements Authenticator {
@@ -17,14 +19,15 @@ public class TwitterAuthenticator implements Authenticator {
     private BlockingQueue<String> queue;
 
     private static final String CLIENT_NAME = "Hosebird-Client-01";
-    private static final String CONSUMER_KEY = "psaUPm78lEpBBfrWcCgq9HqG4";
-    private static final String CONSUMER_SECRET = "SeFxa87001YMPSzVQQxf7atrbyvL14lqWW9ZVBo9DNHTpKdV1W";
-    private static final String TOKEN = "809787904985731072-pMxSa9o8bnhTNPfe966opCqAhTUfoZN";
-    private static final String TOKEN_SECRET = "Nrx5zTqUKQ5Ju6124xNzJtnUW5l4O2kDsjnH8d6ZxOXiC";
+    private String CONSUMER_KEY;
+    private String CONSUMER_SECRET;
+    private String TOKEN;
+    private String TOKEN_SECRET;
 
 
     public TwitterAuthenticator(BlockingQueue<String> queue) {
         this.queue = queue;
+        setProperties();
     }
 
     @Override
@@ -43,5 +46,19 @@ public class TwitterAuthenticator implements Authenticator {
 
     private OAuth1 oAuth() {
         return new OAuth1(CONSUMER_KEY, CONSUMER_SECRET, TOKEN, TOKEN_SECRET);
+    }
+
+    private void setProperties() {
+        Properties properties = new Properties();
+        try {
+            properties.load(TwitterAuthenticator.class.getResourceAsStream("/development.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CONSUMER_KEY = properties.getProperty("CONSUMER_KEY");
+        CONSUMER_SECRET = properties.getProperty("CONSUMER_SECRET");
+        TOKEN = properties.getProperty("TOKEN");
+        TOKEN_SECRET = properties.getProperty("TOKEN_SECRET");
     }
 }
