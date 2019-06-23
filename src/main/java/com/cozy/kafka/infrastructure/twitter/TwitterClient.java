@@ -10,10 +10,14 @@ import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
 import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
+import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,6 +32,13 @@ public class TwitterClient {
         Client client = authentication(queue);
         client.connect();
 
+        KafkaProducer<String, String> producer = createKafkaProducer();
+
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Stopping application...");
+        }));
+
         logger.info("Starting streaming data");
 
         while (!client.isDone()) {
@@ -40,6 +51,13 @@ public class TwitterClient {
             }
             if (msg != null) {
                 logger.info(msg);
+                producer.send(new ProducerRecord<String, String>("twitter_tweets", null, msg), new Callback() {
+                    public void onCompletion(RecordMetadata metadata, Exception exception) {
+                        if (exception != null) {
+                            logger.error("Something bad happened", exception);
+                        }
+                    }
+                });
             }
         }
 
@@ -68,5 +86,22 @@ public class TwitterClient {
     public static void main(String[] args) {
         TwitterClient client = new TwitterClient();
         client.run();
+    }
+
+    public KafkaProducer<String, String> createKafkaProducer() {
+        String serializer = StringSerializer.class.getName();
+        String deserializer = StringDeserializer.class.getName();
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("group.id", "root" + "-consumer");
+        props.put("enable.auto.commit", "true");
+        props.put("auto.commit.interval.ms", "1000");
+        props.put("auto.offset.reset", "earliest");
+        props.put("session.timeout.ms", "30000");
+        props.put("key.deserializer", deserializer);
+        props.put("value.deserializer", deserializer);
+        props.put("key.serializer", serializer);
+        props.put("value.serializer", serializer);
+        return new KafkaProducer<String, String>(props);
     }
 }
