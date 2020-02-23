@@ -18,7 +18,11 @@
     TOKEN=
     TOKEN_SECRET=
     ```
-    
+5. Compile proto file
+```bash
+$ git submodule add -f https://github.com/chariot9/proto-notifier.git src/main/proto
+$ mvn compile
+```
 ### How to run
 - Open `Bootstrap` class and run the main method
     ```java

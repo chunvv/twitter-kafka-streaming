@@ -1,8 +1,13 @@
 package com.cozy.kafka.consumer;
 
+import com.cozy.kafka.consumer.factory.TweetGrpcGenerator;
+import com.cozy.kafka.infrastructure.grpc.GrpcChannel;
+import io.grpc.stub.StreamObserver;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import src.main.proto.twitter.TweetOuterClass;
+import src.main.proto.twitter.TweetServiceGrpc;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -30,10 +35,28 @@ public class TwitterConsumer implements Consumer, Runnable {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(1000);
             for (ConsumerRecord<String, String> record : records) {
-                // Handle with data: for testing, just printing to the console
-                System.out.printf("%s [%d] offset=%d, key=%s, value=\"%s\"\n",
-                        record.topic(), record.partition(),
-                        record.offset(), record.key(), record.value());
+                TweetServiceGrpc.TweetServiceStub service = TweetServiceGrpc.newStub(new GrpcChannel().channel());
+                TweetOuterClass.Tweet data = TweetGrpcGenerator.instance().generate(record.value()).build();
+
+                StreamObserver<TweetOuterClass.Tweet> response = service.receive(new StreamObserver<TweetOuterClass.TweetResponse>() {
+                    @Override
+                    public void onNext(TweetOuterClass.TweetResponse tweetResponse) {
+                        System.out.println("Response from server:" + "Code: " + tweetResponse.getCode()+ "Message: " + tweetResponse.getMessage());
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        System.out.println("Error:" + throwable.getMessage());
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        System.out.println("Completed sending data to Grpc server");
+                    }
+                });
+
+                response.onNext(data);
+                response.onCompleted();
             }
         }
     }
