@@ -1,5 +1,9 @@
 # Twitter data streaming with Kafka
 
+### What?
+- Fetching realtime data from Twitter API by kafka and streaming these data to Grpc server
+- Refer to Grpc server(Golang): https://github.com/chariot9/notifier
+
 ### Preparations
 1. Install Kafka on your local environment
 2. Create the new topic named `twitter_tweets`:
