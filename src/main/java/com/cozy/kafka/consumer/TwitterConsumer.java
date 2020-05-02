@@ -41,7 +41,7 @@ public class TwitterConsumer implements Consumer, Runnable {
                 StreamObserver<TweetOuterClass.Tweet> response = service.receive(new StreamObserver<TweetOuterClass.TweetResponse>() {
                     @Override
                     public void onNext(TweetOuterClass.TweetResponse tweetResponse) {
-                        System.out.println("Response from server:" + "Code: " + tweetResponse.getCode()+ "Message: " + tweetResponse.getMessage());
+                        System.out.println("Response from server:" + "Code: " + tweetResponse.getCode() + "Message: " + tweetResponse.getMessage());
                     }
 
                     @Override
